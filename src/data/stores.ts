@@ -1,11 +1,25 @@
-import type { Store } from '@/lib/types';
+import type { FranchiseId, Store, StoreKind } from '@/lib/types';
+
+type StoreInput = Omit<Store, 'franchises'> & { franchises?: FranchiseId[] };
+
+/**
+ * Which card games a kind of store usually sells. This is an ESTIMATE used until the
+ * community confirms each store's range; the app labels it "à confirmer".
+ */
+const RANGE_BY_KIND: Record<StoreKind, FranchiseId[]> = {
+  specialiste: ['pokemon', 'yugioh', 'onepiece', 'dbs', 'digimon'],
+  culture: ['pokemon', 'yugioh', 'onepiece', 'dbs'],
+  'jeux-video': ['pokemon', 'yugioh', 'onepiece'],
+  jouets: ['pokemon', 'yugioh'],
+  'grande-surface': ['pokemon', 'yugioh'],
+};
 
 /**
  * Stores in La Roche-sur-Yon likely to sell trading cards.
  * Positions and opening hours come from OpenStreetMap (© OpenStreetMap contributors, ODbL),
  * fetched on 2026-11-08. Hours marked null were missing in OpenStreetMap and must be checked on site.
  */
-export const STORES: Store[] = [
+const RAW_STORES: StoreInput[] = [
   {
     id: 'sortileges',
     name: 'Sortilèges',
@@ -126,6 +140,14 @@ export const STORES: Store[] = [
     hours: 'Mo-Sa 09:00-20:00; Su 09:00-12:45',
   },
 ];
+
+export const STORES: Store[] = RAW_STORES.map((s) => ({ ...s, franchises: s.franchises ?? RANGE_BY_KIND[s.kind] }));
+
+export function storesFor(franchise: FranchiseId): Store[] {
+  return STORES.filter((s) => s.franchises.includes(franchise));
+}
+
+export const CITY_NAME = 'La Roche-sur-Yon';
 
 export const CITY_REGION = {
   latitude: 46.6745,

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "booster-radar",
-    "slug": "booster-radar",
+    "name": "RadarGeek",
+    "slug": "radargeek",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "boosterradar",
+    "scheme": "radargeek",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -26,9 +26,15 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "RadarGeek utilise ta position pour te montrer les magasins autour de toi."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F3EFE6",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
