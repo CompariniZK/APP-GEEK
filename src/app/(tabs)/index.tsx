@@ -33,7 +33,13 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const now = useNow();
   const { franchise } = useFranchise();
-  const { currentReport, recentReports, favorites } = useCommunity();
+  const { currentReport, recentReports, favorites, connection } = useCommunity();
+  const live = {
+    online: { label: 'en direct', color: theme.signal },
+    connecting: { label: 'connexion…', color: theme.inkFaint },
+    offline: { label: 'hors ligne', color: theme.inkFaint },
+    local: { label: 'sur ce téléphone', color: theme.inkFaint },
+  }[connection];
 
   const stores = useMemo(() => storesFor(franchise.id), [franchise.id]);
   const counts = useMemo(() => {
@@ -110,9 +116,9 @@ export default function HomeScreen() {
             Cartes {franchise.name}
           </Txt>
           <View style={styles.live}>
-            <View style={[styles.liveDot, { backgroundColor: theme.signal }]} />
+            <View style={[styles.liveDot, { backgroundColor: live.color }]} />
             <Txt variant="caption" tone="soft">
-              en direct
+              {live.label}
             </Txt>
           </View>
         </View>

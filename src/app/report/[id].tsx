@@ -12,7 +12,16 @@ import { getFranchise } from '@/data/franchises';
 import { findStore } from '@/data/stores';
 import { useTheme } from '@/hooks/use-theme';
 import type { PurchaseLimit, QueueLevel, StockLevel } from '@/lib/types';
-import { useCommunity } from '@/state/community';
+import { ReportError, useCommunity } from '@/state/community';
+
+const ERROR_TEXT: Record<ReportError['reason'], { title: string; body: string }> = {
+  rate_limited: {
+    title: 'Déjà signalé !',
+    body: 'Tu as signalé ce magasin il y a moins de 5 minutes. Reviens un peu plus tard.',
+  },
+  auth: { title: 'Connexion impossible', body: 'Le serveur ne répond pas. Réessaie dans un moment.' },
+  network: { title: 'Pas de réseau', body: 'Vérifie ta connexion, puis touche à nouveau ta réponse.' },
+};
 
 type IconName = React.ComponentProps<typeof Icon>['name'];
 type Option = { value: string; label: string; hint?: string; icon?: IconName; tone?: 'good' | 'warn' | 'out' };
@@ -58,6 +67,8 @@ export default function ReportScreen() {
   const [stock, setStock] = useState<StockLevel | null>(null);
   const [queue, setQueue] = useState<QueueLevel | null>(null);
   const [done, setDone] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<ReportError['reason'] | null>(null);
 
   useEffect(() => {
     if (!done) return;
@@ -91,10 +102,19 @@ export default function ReportScreen() {
     } else if (step === 1) {
       setQueue(value as QueueLevel);
       setStep(2);
-    } else if (stock && queue) {
-      await addReport({ storeId: store.id, franchise: fr.id, stock, queue, limit: value as PurchaseLimit });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      setDone(true);
+    } else if (stock && queue && !sending) {
+      setSending(true);
+      setError(null);
+      try {
+        await addReport({ storeId: store.id, franchise: fr.id, stock, queue, limit: value as PurchaseLimit });
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        setDone(true);
+      } catch (e) {
+        setError(e instanceof ReportError ? e.reason : 'network');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+      } finally {
+        setSending(false);
+      }
     }
   };
 
@@ -127,6 +147,20 @@ export default function ReportScreen() {
           {QUESTIONS[step]}
         </Txt>
       </View>
+
+      {error ? (
+        <View style={[styles.errorBox, { backgroundColor: theme.signalTint }]}>
+          <Icon name={{ ios: 'exclamationmark.triangle.fill', android: 'warning' }} size={18} color={theme.signal} />
+          <View style={styles.errorText}>
+            <Txt variant="bodyStrong" tone="signal">
+              {ERROR_TEXT[error].title}
+            </Txt>
+            <Txt variant="small" size={13.5}>
+              {ERROR_TEXT[error].body}
+            </Txt>
+          </View>
+        </View>
+      ) : null}
 
       {step < 2 ? (
         <View style={styles.list}>
@@ -164,11 +198,12 @@ export default function ReportScreen() {
             <Pressable
               key={opt.value}
               onPress={() => choose(opt.value)}
+              disabled={sending}
               style={({ pressed }) => [
                 styles.gridTile,
                 { backgroundColor: theme.card },
                 i === LIMIT_OPTIONS.length - 1 && styles.gridTileWide,
-                pressed && { transform: [{ scale: 0.97 }], opacity: 0.9 },
+                (pressed || sending) && { transform: [{ scale: 0.97 }], opacity: 0.6 },
               ]}>
               <Txt variant="title" size={19} tone={opt.value === 'inconnue' ? 'soft' : 'ink'}>
                 {opt.label}
@@ -208,6 +243,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gridTileWide: { width: '100%', height: 64 },
+  errorBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderRadius: Radius.tile, padding: 14 },
+  errorText: { flex: 1, gap: 2 },
   doneScreen: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, padding: 24 },
   doneIcon: {
     width: 64,
