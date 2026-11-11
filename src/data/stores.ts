@@ -46,7 +46,8 @@ const RAW_STORES: StoreInput[] = [
     address: '55 rue Volta, 85000 La Roche-sur-Yon',
     latitude: 46.6962,
     longitude: -1.43183,
-    hours: null,
+    // cultura.com store page, Bonial, Mappy (checked 2026-11-11)
+    hours: 'Mo-Sa 09:00-20:00; Su off',
     approxLocation: true,
   },
   {
@@ -65,7 +66,8 @@ const RAW_STORES: StoreInput[] = [
     address: '24 rue des Flâneries, 85000 La Roche-sur-Yon',
     latitude: 46.69934,
     longitude: -1.43238,
-    hours: null,
+    // king-jouet.com store page (checked 2026-11-11)
+    hours: 'Mo-Sa 09:30-19:30; Su off',
   },
   {
     id: 'joueclub',
@@ -83,7 +85,8 @@ const RAW_STORES: StoreInput[] = [
     address: null,
     latitude: 46.64956,
     longitude: -1.43745,
-    hours: null,
+    // Bonial listing (checked 2026-11-11), to confirm on site
+    hours: 'Mo-Sa 08:45-20:00; Su off',
   },
   {
     id: 'leclerc-sud',
